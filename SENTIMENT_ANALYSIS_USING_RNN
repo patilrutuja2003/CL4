@@ -1,0 +1,79 @@
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, LSTM, Dense
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import networkx as nx
+import matplotlib.pyplot as plt
+
+# Sample data for training the sentiment analysis RNN
+texts = ["I love this product", "This is terrible", "Absolutely great experience", "Feeling so happy today", "This made me really sad", "The service was excellent"]
+labels = [1, 0, 1, 1, 0, 1]  # 1 for positive, 0 for negative
+
+# Tokenization
+tokenizer = Tokenizer(num_words=5000)
+tokenizer.fit_on_texts(texts)
+sequences = tokenizer.texts_to_sequences(texts)
+X = pad_sequences(sequences, maxlen=100)
+
+# Convert labels to NumPy array
+labels = np.array(labels)
+
+# Model for sentiment analysis
+model = Sequential([
+    Embedding(input_dim=5000, output_dim=64, input_length=100),
+    LSTM(64),
+    Dense(1, activation='sigmoid')
+])
+
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Train the sentiment analysis model
+model.fit(X, labels, epochs=5, verbose=0)
+
+# Function to predict sentiment of a text
+def predict_sentiment(text):
+    seq = tokenizer.texts_to_sequences([text])
+    padded = pad_sequences(seq, maxlen=100)
+    prediction = model.predict(padded, verbose=0)[0][0]
+    return 'positive' if prediction > 0.5 else 'negative'
+
+# Create a sample network graph
+G = nx.DiGraph()
+
+# Add nodes with text content for sentiment analysis
+nodes_data = {
+    1: "Just had a wonderful day!",
+    2: "The food was awful.",
+    3: "I totally agree with the positive comments.",
+    4: "This is not what I expected.",
+    5: "Feeling fantastic after using this."
+}
+
+for node_id, text in nodes_data.items():
+    sentiment = predict_sentiment(text)
+    G.add_node(node_id, text=text, sentiment=sentiment)
+
+# Add edges representing relationships in the network
+G.add_edge(2, 1)  # Node 2 reacted to Node 1
+G.add_edge(3, 1)  # Node 3 agreed with Node 1
+G.add_edge(4, 5)  # Node 4 had an opinion about Node 5
+G.add_edge(5, 1)  # Node 5 interacted with Node 1
+
+# Visualize the network graph with sentiment coloring
+color_map = []
+for node in G:
+    if G.nodes[node]['sentiment'] == 'positive':
+        color_map.append('green')
+    else:
+        color_map.append('red')
+
+pos = nx.spring_layout(G)  # You can use different layout algorithms
+nx.draw(G, pos, with_labels=True, node_color=color_map, node_size=3000, font_size=10, font_weight='bold')
+
+# Add sentiment as labels to the nodes
+node_labels = {node: f"{node}\n({G.nodes[node]['sentiment']})" for node in G}
+nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=8, font_color='black')
+
+plt.title("Sentiment Analysis in Network Graph using RNN")
+plt.show()
