@@ -1,0 +1,40 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+!pip install xlsxwriter
+
+# #Create a sample dataset for analysis
+data = {'Department': ['Sales', 'Sales', 'HR', 'HR', 'IT', 'IT', 'IT', 'Marketing', 'Marketing', 'Sales'],  'Employee': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi', 'Ivan', 'Jack'],
+   'Salary': [50000, 55000, 40000, 42000, 60000, 61000, 62000, 47000, 48000, 53000],   'Experience': [2, 3, 1, 2, 5, 6, 7, 3, 4, 3]
+}
+
+df = pd.DataFrame(data)
+
+# Save to Excel with summary statistics and chart data
+file_path = "Advanced_Excel_Data_Analysis.xlsx"
+with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
+    df.to_excel(writer, sheet_name='Raw Data', index=False)
+
+    # Descriptive stats
+    summary = df.describe(include='all')
+    summary.to_excel(writer, sheet_name='Summary Statistics')
+
+    # Pivot table: Avg Salary by Department
+    pivot_salary = df.pivot_table(values='Salary', index='Department', aggfunc='mean')
+    pivot_salary.to_excel(writer, sheet_name='Pivot Table')
+
+
+# Add chart
+    workbook = writer.book
+    worksheet = writer.sheets['Pivot Table']
+    chart = workbook.add_chart({'type': 'column'})
+    chart.add_series({
+        'name': 'Average Salary',
+        'categories': ['Pivot Table', 1, 0, len(pivot_salary), 0],
+        'values':     ['Pivot Table', 1, 1, len(pivot_salary), 1],
+    })
+    chart.set_title({'name': 'Average Salary by Department'})
+    chart.set_x_axis({'name': 'Department'})
+    chart.set_y_axis({'name': 'Salary'})
+    worksheet.insert_chart('D2', chart)
+
+print(f"Excel file created at: {file_path}")  # Return path to download Excel file.
