@@ -1,0 +1,70 @@
+import tensorflow as tf
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.utils import to_categorical
+from sklearn.metrics import confusion_matrix
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load and preprocess
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+x_train = x_train / 255.0
+x_test = x_test / 255.0
+y_train_categorical = to_categorical(y_train, 10)
+y_test_categorical = to_categorical(y_test, 10)
+
+# CNN with hyperparameter tuned
+learning_rate = 0.001
+dropout_rate = 0.4
+optimizer = Adam(learning_rate=learning_rate)
+filter_size = (3, 3)
+num_filters = 32
+
+# CNN
+model = Sequential([
+    Conv2D(num_filters, filter_size, activation='relu', input_shape=(32, 32, 3)),
+    MaxPooling2D(2, 2),
+    Dropout(dropout_rate),
+
+    Conv2D(64, filter_size, activation='relu'),
+    MaxPooling2D(2, 2),
+    Dropout(dropout_rate),
+
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dropout(dropout_rate),
+    Dense(10, activation='softmax')  # 10 classes
+])
+
+# Compile
+model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+model.fit(x_train, y_train_categorical, epochs=5, batch_size=64, validation_split=0.1)
+
+# Evaluate
+loss, accuracy = model.evaluate(x_test, y_test_categorical)
+print("Test Accuracy:", accuracy)
+
+# Predict probabilities on the test set
+y_pred_probabilities = model.predict(x_test)
+
+# Convert probabilities to class labels
+y_pred = np.argmax(y_pred_probabilities, axis=1)
+
+# Generate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Class labels for better visualization
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+               'dog', 'frog', 'horse', 'ship', 'truck']
+
+# Plot the confusion matrix
+plt.figure(figsize=(10, 8))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=class_names, yticklabels=class_names)
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.title('Confusion Matrix')
+plt.show()
