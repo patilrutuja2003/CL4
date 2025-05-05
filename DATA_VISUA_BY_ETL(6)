@@ -1,0 +1,25 @@
+# Extract
+import pandas as pd
+df = pd.read_csv('sample.csv')
+
+df.head(2)
+
+# TRANSFORM
+df.dropna(inplace=True)
+# col conv
+df['Sales'] = df['Sales'].astype(float)
+
+# Visualize
+import matplotlib.pyplot as plt
+#bar chart sales by category
+df.groupby('Category')['Sales'].sum().plot(kind='bar',color='blue')
+plt.title("Total sales by category")
+plt.xlabel('Category')
+plt.ylabel('Sales')
+# plt.tight_layout()
+plt.show()
+
+plt.tight_layout()
+
+
+
