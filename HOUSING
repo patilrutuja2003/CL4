@@ -1,0 +1,52 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
+
+#Load dataset
+url = 'https://raw.githubusercontent.com/huzaifsayed/Linear-Regression-Model-for-House-Price-Prediction/master/USA_Housing.csv'
+df = pd.read_csv(url)
+
+df.head()
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Load the dataset
+url = 'https://raw.githubusercontent.com/huzaifsayed/Linear-Regression-Model-for-House-Price-Prediction/master/USA_Housing.csv'
+df = pd.read_csv(url)
+
+# 2. Select features (X) and target (y)
+X = df[['Avg. Area Income', 'Avg. Area House Age', 'Avg. Area Number of Rooms',
+       'Avg. Area Number of Bedrooms', 'Area Population']]  # Features
+y = df['Price']  # Target variable
+
+# 3. Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80% train, 20% test
+
+# 4. Create and train the Linear Regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 5. Make predictions on the test set
+predictions = model.predict(X_test)
+
+# 6. Evaluate the model (print R-squared)
+from sklearn.metrics import r2_score
+r2 = r2_score(y_test, predictions)
+print(f"R-squared: {r2:.2f}")
+
+# 7. Visualize predictions vs. actual prices
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x=y_test, y=predictions)
+plt.xlabel('Actual Prices')
+plt.ylabel('Predicted Prices')
+plt.title('Actual Prices vs. Predicted Prices')
+plt.show()
