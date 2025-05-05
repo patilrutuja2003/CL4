@@ -1,0 +1,32 @@
+import pandas as pd
+from sklearn import datasets
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os  # Import the os module
+
+# Set the environment variable to use a single thread (to prevent memory leak on Windows with MKL)
+os.environ['OMP_NUM_THREADS'] = '1'
+
+iris = datasets.load_iris()
+X = iris.data  # Features: sepal length, sepal width, petal length, petal width
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X_scaled)
+
+labels = kmeans.labels_
+centers = kmeans.cluster_centers_
+
+# (Optional) Visualize the clustering (for the first two features)
+plt.figure(figsize=(8, 6))
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=labels, cmap='viridis', marker='o')
+plt.scatter(centers[:, 0], centers[:, 1], c='red', marker='x', s=200, alpha=0.75)  # Cluster centers
+plt.title('KMeans Clustering of Iris Dataset (Scaled)')
+plt.xlabel('Scaled Sepal Length')
+plt.ylabel('Scaled Sepal Width')
+plt.grid(True)
+plt.show()
